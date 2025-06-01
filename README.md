@@ -1,1 +1,306 @@
-# WorkNet_Connect
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Work Finder</title>
+<style>
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+margin: 0;
+padding: 0;
+background-color: #f4f4f9;
+color: #333;
+}
+
+header {
+background: crimson;
+color: white;
+padding: 10px;
+text-align: center;
+position: fixed;
+width: 100%;
+top: 0;
+z-index: 1000;
+}
+
+marquee {
+font-weight: bold;
+}
+
+#welcome-page {
+height: 100vh;
+background: #fff;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+text-align: center;
+padding: 20px;
+}
+
+#welcome-page h1 {
+font-size: 2.5em;
+color: crimson;
+}
+
+#welcome-page p {
+font-size: 1.2em;
+margin-bottom: 20px;
+}
+
+main {
+padding-top: 80px;
+text-align: center;
+}
+
+.btn {
+margin: 10px;
+padding: 15px 30px;
+font-size: 16px;
+cursor: pointer;
+background-color: #007bff;
+color: white;
+border: none;
+border-radius: 5px;
+transition: background 0.3s;
+}
+
+.btn:hover {
+background-color: #0056b3;
+}
+
+#categories, #radius-selection, #register-form, #availability, #auth-options, #login-form {
+display: none;
+margin-top: 20px;
+}
+
+#result {
+margin-top: 20px;
+}
+
+input, select {
+margin: 10px;
+padding: 10px;
+width: 250px;
+font-size: 16px;
+border-radius: 5px;
+border: 1px solid #ccc;
+}
+
+.error {
+color: red;
+font-size: 14px;
+}
+</style>
+</head>
+<body>
+<header>
+<marquee>⚠ Don't pay before meeting the worker directly — worker may be a fraud!</marquee>
+</header>
+
+<!-- Welcome Page -->
+<div id="welcome-page">
+<h1>Welcome to WorkNet Connect</h1>
+<p>Your gateway to jobs and talent nearby 🚀</p>
+<button class="btn" onclick="startApp()">🎯 Get Started</button>
+</div>
+
+<!-- Main App -->
+<main id="app-main" style="display: none;">
+<h2>👋 Welcome to <span style="color: #007bff">WorkNet Connect</span></h2>
+<p>🔍 Your Gateway to Jobs and Talent Nearby</p>
+
+<button class="btn" onclick="selectMode('work')">👷 Find WORK</button>
+<button class="btn" onclick="selectMode('worker')">🔧 Find WORKER</button>
+
+<div id="auth-options">
+<button class="btn" onclick="showRegisterForm()">📝 Register</button>
+<button class="btn" onclick="showLoginForm()">🔐 Login</button>
+</div>
+
+<div id="categories">
+<h3>Select Category 🗂</h3>
+<div id="category-buttons"></div>
+</div>
+
+<div id="radius-selection">
+<h3>📍 Select Radius (in km)</h3>
+<select id="radius">
+<option value="1">1 km</option>
+<option value="3">3 km</option>
+<option value="5">5 km</option>
+<option value="10">10 km</option>
+</select>
+<button class="btn" onclick="findWorkers()">🔎 Search Workers</button>
+</div>
+
+<div id="register-form">
+<h3>📝 Register as Worker</h3>
+<input type="text" id="worker-name" placeholder="Your Name" required /> <br />
+<input type="text" id="worker-phone" placeholder="Mobile Number" required oninput="validatePhone()" /> <br />
+<div id="phone-error" class="error"></div>
+<button class="btn" onclick="registerWorker()">✅ Register and Save Location</button>
+</div>
+
+<div id="login-form">
+<h3>🔐 Login</h3>
+<input type="text" id="login-phone" placeholder="Mobile Number" required /> <br />
+<button class="btn" onclick="loginWorker()">➡ Login</button>
+</div>
+
+<div id="availability">
+<h3 id="welcome"></h3>
+<p>Set your availability:</p>
+<button class="btn" onclick="setAvailability(true)">✅ AVAILABLE</button>
+<button class="btn" onclick="setAvailability(false)">❌ NOT AVAILABLE</button>
+</div>
+
+<div id="result"></div>
+</main>
+
+<script>
+const categories = ["PAINT", "CARPENTER", "PLUMBER", "ELECTRICIAN", "TUTOR", "MASONRY", "OTHERS"];
+let workersDB = JSON.parse(localStorage.getItem('workersDB') || '{}');
+let currentMode = '';
+let selectedCategory = '';
+let userLocation = null;
+let currentPhone = '';
+
+function startApp() {
+document.getElementById('welcome-page').style.display = 'none';
+document.getElementById('app-main').style.display = 'block';
+}
+
+function selectMode(mode) {
+currentMode = mode;
+document.getElementById('auth-options').style.display = (mode === 'work') ? 'block' : 'none';
+document.getElementById('categories').style.display = 'block';
+const catContainer = document.getElementById('category-buttons');
+catContainer.innerHTML = '';
+categories.forEach(cat => {
+const btn = document.createElement('button');
+btn.className = 'btn';
+btn.textContent = cat;
+btn.onclick = () => selectCategory(cat);
+catContainer.appendChild(btn);
+});
+}
+
+function showRegisterForm() {
+document.getElementById('register-form').style.display = 'block';
+document.getElementById('login-form').style.display = 'none';
+}
+
+function showLoginForm() {
+document.getElementById('login-form').style.display = 'block';
+document.getElementById('register-form').style.display = 'none';
+}
+
+function selectCategory(cat) {
+selectedCategory = cat;
+if (currentMode === 'worker') {
+getLocation(() => {
+document.getElementById('radius-selection').style.display = 'block';
+});
+}
+}
+
+function getLocation(callback) {
+if (navigator.geolocation) {
+navigator.geolocation.getCurrentPosition(position => {
+userLocation = {
+lat: position.coords.latitude,
+lon: position.coords.longitude
+};
+callback();
+}, () => alert("Location access denied"));
+} else {
+alert("Geolocation is not supported by this browser.");
+}
+}
+
+function validatePhone() {
+const phone = document.getElementById('worker-phone').value;
+const errorDiv = document.getElementById('phone-error');
+if (!/^\d{10}$/.test(phone)) {
+errorDiv.textContent = "📛 Phone number must be exactly 10 digits";
+} else {
+errorDiv.textContent = "";
+}
+}
+
+function registerWorker() {
+const name = document.getElementById('worker-name').value.trim();
+const phone = document.getElementById('worker-phone').value.trim();
+if (!name || !/^\d{10}$/.test(phone)) return;
+
+const existing = (workersDB[selectedCategory] || []).find(w => w.phone === phone);
+if (existing) {
+alert("⚠ You are already registered. Please login.");
+showLoginForm();
+return;
+}
+
+getLocation(() => {
+const newWorker = { name, phone, location: userLocation, available: false };
+if (!workersDB[selectedCategory]) workersDB[selectedCategory] = [];
+workersDB[selectedCategory].push(newWorker);
+localStorage.setItem('workersDB', JSON.stringify(workersDB));
+
+currentPhone = phone;
+document.getElementById('register-form').style.display = 'none';
+document.getElementById('availability').style.display = 'block';
+document.getElementById('welcome').textContent = `👋 Welcome, ${name}`;
+});
+}
+
+function loginWorker() {
+const phone = document.getElementById('login-phone').value.trim();
+const found = Object.keys(workersDB).some(cat => {
+const worker = workersDB[cat].find(w => w.phone === phone);
+if (worker) {
+selectedCategory = cat;
+currentPhone = phone;
+document.getElementById('login-form').style.display = 'none';
+document.getElementById('availability').style.display = 'block';
+document.getElementById('welcome').textContent = `👋 Welcome back, ${worker.name}`;
+return true;
+}
+return false;
+});
+if (!found) alert("❌ Worker not found. Please register first.");
+}
+
+function setAvailability(status) {
+const workers = workersDB[selectedCategory];
+const worker = workers.find(w => w.phone === currentPhone);
+if (worker) {
+worker.available = status;
+localStorage.setItem('workersDB', JSON.stringify(workersDB));
+alert(`✅ Status set to ${status ? 'AVAILABLE' : 'NOT AVAILABLE'}`);
+}
+}
+
+function findWorkers() {
+const radius = parseInt(document.getElementById('radius').value);
+const workers = (workersDB[selectedCategory] || []).filter(w => w.available);
+const nearby = workers.filter(w => getDistance(userLocation, w.location) <= radius);
+const resultDiv = document.getElementById('result');
+resultDiv.innerHTML = '<h3>👥 Available Workers:</h3>' +
+(nearby.length ? nearby.map(w => `${w.name} - ${w.phone}`).join('<br>') : 'No workers found.');
+}
+
+function getDistance(loc1, loc2) {
+const R = 6371;
+const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
+const dLon = (loc2.lon - loc1.lon) * Math.PI / 180;
+const a = Math.sin(dLat / 2) ** 2 +
+Math.cos(loc1.lat * Math.PI / 180) * Math.cos(loc2.lat * Math.PI / 180) *
+Math.sin(dLon / 2) ** 2;
+const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+return R * c;
+}
+</script>
+</body>
+</html>
