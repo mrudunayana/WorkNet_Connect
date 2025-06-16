@@ -1,306 +1,347 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Work Finder</title>
-<style>
-body {
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-margin: 0;
-padding: 0;
-background-color: #f4f4f9;
-color: #333;
-}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WorkNet Connect</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-header {
-background: crimson;
-color: white;
-padding: 10px;
-text-align: center;
-position: fixed;
-width: 100%;
-top: 0;
-z-index: 1000;
-}
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #eef2f7;
+      color: #333;
+      scroll-behavior: smooth;
+    }
 
-marquee {
-font-weight: bold;
-}
+    header {
+      background: #dc3545;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
 
-#welcome-page {
-height: 100vh;
-background: #fff;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-text-align: center;
-padding: 20px;
-}
+    nav {
+      display: flex;
+      justify-content: center;
+      background-color: #343a40;
+      flex-wrap: wrap;
+    }
 
-#welcome-page h1 {
-font-size: 2.5em;
-color: crimson;
-}
+    nav button {
+      background: none;
+      border: none;
+      padding: 15px 20px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
 
-#welcome-page p {
-font-size: 1.2em;
-margin-bottom: 20px;
-}
+    nav button.active,
+    nav button:hover {
+      background-color: #007bff;
+    }
 
-main {
-padding-top: 80px;
-text-align: center;
-}
+    .tab-content {
+      display: none;
+      padding: 30px 20px;
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
 
-.btn {
-margin: 10px;
-padding: 15px 30px;
-font-size: 16px;
-cursor: pointer;
-background-color: #007bff;
-color: white;
-border: none;
-border-radius: 5px;
-transition: background 0.3s;
-}
+    .tab-content.active {
+      display: block;
+    }
 
-.btn:hover {
-background-color: #0056b3;
-}
+    h1, h2 {
+      color: #007bff;
+    }
 
-#categories, #radius-selection, #register-form, #availability, #auth-options, #login-form {
-display: none;
-margin-top: 20px;
-}
+    .btn {
+      margin: 10px;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
 
-#result {
-margin-top: 20px;
-}
+    .btn:hover {
+      background-color: #218838;
+    }
 
-input, select {
-margin: 10px;
-padding: 10px;
-width: 250px;
-font-size: 16px;
-border-radius: 5px;
-border: 1px solid #ccc;
-}
+    input, select {
+      padding: 10px;
+      width: 100%;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
 
-.error {
-color: red;
-font-size: 14px;
-}
-</style>
+    .error {
+      color: red;
+      font-size: 14px;
+    }
+
+    #result {
+      margin-top: 20px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
 </head>
 <body>
-<header>
-<marquee>⚠ Don't pay before meeting the worker directly — worker may be a fraud!</marquee>
-</header>
 
-<!-- Welcome Page -->
-<div id="welcome-page">
-<h1>Welcome to WorkNet Connect</h1>
-<p>Your gateway to jobs and talent nearby 🚀</p>
-<button class="btn" onclick="startApp()">🎯 Get Started</button>
-</div>
+  <header>
+    ⚠ Don't pay before meeting the worker directly — worker may be a fraud!
+  </header>
 
-<!-- Main App -->
-<main id="app-main" style="display: none;">
-<h2>👋 Welcome to <span style="color: #007bff">WorkNet Connect</span></h2>
-<p>🔍 Your Gateway to Jobs and Talent Nearby</p>
+  <nav>
+    <button onclick="showTab('home', this)" class="active">🏠 Home</button>
+    <button id="registerTab" onclick="showTab('register', this)">📝 Register</button>
+    <button id="loginTab" onclick="showTab('login', this)">🔐 Login</button>
+    <button onclick="showTab('find-worker', this)">🔧 Find Worker</button>
+    <button id="profileTab" class="hidden" onclick="showTab('profile', this)">👤 Profile</button>
+    <button id="logoutBtn" class="hidden" onclick="logout()">🚪 Logout</button>
+  </nav>
 
-<button class="btn" onclick="selectMode('work')">👷 Find WORK</button>
-<button class="btn" onclick="selectMode('worker')">🔧 Find WORKER</button>
+  <section id="home" class="tab-content active">
+    <h1>Welcome to WorkNet Connect</h1>
+    <p>Your gateway to jobs and talent nearby 🚀</p>
+  </section>
 
-<div id="auth-options">
-<button class="btn" onclick="showRegisterForm()">📝 Register</button>
-<button class="btn" onclick="showLoginForm()">🔐 Login</button>
-</div>
+  <section id="register" class="tab-content">
+    <h2>📝 Register</h2>
+    <input type="text" id="worker-name" placeholder="Your Name">
+    <input type="text" id="worker-phone" placeholder="10-digit Mobile Number" oninput="validatePhone()">
+    <div id="phone-error" class="error"></div>
+    <input type="password" id="worker-password" placeholder="Password">
+    <select id="worker-category">
+      <option value="">Select Category</option>
+      <option>PAINT</option>
+      <option>CARPENTER</option>
+      <option>PLUMBER</option>
+      <option>ELECTRICIAN</option>
+      <option>TUTOR</option>
+      <option>MASONRY</option>
+      <option>OTHERS</option>
+    </select>
+    <button class="btn" onclick="registerWorker()">Register</button>
+  </section>
 
-<div id="categories">
-<h3>Select Category 🗂</h3>
-<div id="category-buttons"></div>
-</div>
+  <section id="login" class="tab-content">
+    <h2>🔐 Login</h2>
+    <input type="text" id="login-phone" placeholder="Mobile Number">
+    <input type="password" id="login-password" placeholder="Password">
+    <button class="btn" onclick="loginWorker()">Login</button>
+  </section>
 
-<div id="radius-selection">
-<h3>📍 Select Radius (in km)</h3>
-<select id="radius">
-<option value="1">1 km</option>
-<option value="3">3 km</option>
-<option value="5">5 km</option>
-<option value="10">10 km</option>
-</select>
-<button class="btn" onclick="findWorkers()">🔎 Search Workers</button>
-</div>
+  <section id="find-worker" class="tab-content">
+    <h2>🔧 Find Available Workers</h2>
+    <select id="search-category">
+      <option value="">Select Category</option>
+      <option>PAINT</option>
+      <option>CARPENTER</option>
+      <option>PLUMBER</option>
+      <option>ELECTRICIAN</option>
+      <option>TUTOR</option>
+      <option>MASONRY</option>
+      <option>OTHERS</option>
+    </select>
+    <select id="radius">
+      <option value="1">1 km</option>
+      <option value="3">3 km</option>
+      <option value="5">5 km</option>
+      <option value="10">10 km</option>
+    </select>
+    <button class="btn" onclick="findWorkers()">Search</button>
+    <div id="result"></div>
+  </section>
 
-<div id="register-form">
-<h3>📝 Register as Worker</h3>
-<input type="text" id="worker-name" placeholder="Your Name" required /> <br />
-<input type="text" id="worker-phone" placeholder="Mobile Number" required oninput="validatePhone()" /> <br />
-<div id="phone-error" class="error"></div>
-<button class="btn" onclick="registerWorker()">✅ Register and Save Location</button>
-</div>
+  <section id="profile" class="tab-content">
+    <h2>👤 Your Profile</h2>
+    <p id="profile-info"></p>
+    <button class="btn" onclick="setAvailability(true)">✅ AVAILABLE</button>
+    <button class="btn" onclick="setAvailability(false)">❌ NOT AVAILABLE</button>
+  </section>
 
-<div id="login-form">
-<h3>🔐 Login</h3>
-<input type="text" id="login-phone" placeholder="Mobile Number" required /> <br />
-<button class="btn" onclick="loginWorker()">➡ Login</button>
-</div>
+  <script>
+    const workersDB = JSON.parse(localStorage.getItem('workersDB') || '{}');
+    let currentPhone = localStorage.getItem('currentPhone') || '';
+    let currentCategory = localStorage.getItem('currentCategory') || '';
 
-<div id="availability">
-<h3 id="welcome"></h3>
-<p>Set your availability:</p>
-<button class="btn" onclick="setAvailability(true)">✅ AVAILABLE</button>
-<button class="btn" onclick="setAvailability(false)">❌ NOT AVAILABLE</button>
-</div>
+    function showTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
 
-<div id="result"></div>
-</main>
+    function validatePhone() {
+      const phone = document.getElementById('worker-phone').value;
+      const errorDiv = document.getElementById('phone-error');
+      errorDiv.textContent = /^\d{10}$/.test(phone) ? "" : "Phone number must be 10 digits.";
+    }
 
-<script>
-const categories = ["PAINT", "CARPENTER", "PLUMBER", "ELECTRICIAN", "TUTOR", "MASONRY", "OTHERS"];
-let workersDB = JSON.parse(localStorage.getItem('workersDB') || '{}');
-let currentMode = '';
-let selectedCategory = '';
-let userLocation = null;
-let currentPhone = '';
+    function getLocation(callback) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          callback({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude
+          });
+        }, () => alert("Location access denied."));
+      } else {
+        alert("Geolocation not supported.");
+      }
+    }
 
-function startApp() {
-document.getElementById('welcome-page').style.display = 'none';
-document.getElementById('app-main').style.display = 'block';
-}
+    function registerWorker() {
+      const name = document.getElementById('worker-name').value.trim();
+      const phone = document.getElementById('worker-phone').value.trim();
+      const password = document.getElementById('worker-password').value.trim();
+      const category = document.getElementById('worker-category').value;
 
-function selectMode(mode) {
-currentMode = mode;
-document.getElementById('auth-options').style.display = (mode === 'work') ? 'block' : 'none';
-document.getElementById('categories').style.display = 'block';
-const catContainer = document.getElementById('category-buttons');
-catContainer.innerHTML = '';
-categories.forEach(cat => {
-const btn = document.createElement('button');
-btn.className = 'btn';
-btn.textContent = cat;
-btn.onclick = () => selectCategory(cat);
-catContainer.appendChild(btn);
-});
-}
+      if (!name || !/^\d{10}$/.test(phone) || !password || !category) {
+        alert("Fill all fields correctly.");
+        return;
+      }
 
-function showRegisterForm() {
-document.getElementById('register-form').style.display = 'block';
-document.getElementById('login-form').style.display = 'none';
-}
+      if (!workersDB[category]) workersDB[category] = [];
+      const exists = workersDB[category].some(w => w.phone === phone);
 
-function showLoginForm() {
-document.getElementById('login-form').style.display = 'block';
-document.getElementById('register-form').style.display = 'none';
-}
+      if (exists) {
+        alert("Already registered. Please login.");
+        return;
+      }
 
-function selectCategory(cat) {
-selectedCategory = cat;
-if (currentMode === 'worker') {
-getLocation(() => {
-document.getElementById('radius-selection').style.display = 'block';
-});
-}
-}
+      getLocation(location => {
+        const newWorker = { name, phone, password, category, location, available: false };
+        workersDB[category].push(newWorker);
+        localStorage.setItem('workersDB', JSON.stringify(workersDB));
+        alert("Registered! Please login.");
+        showTab('login', document.querySelector('#loginTab'));
+      });
+    }
 
-function getLocation(callback) {
-if (navigator.geolocation) {
-navigator.geolocation.getCurrentPosition(position => {
-userLocation = {
-lat: position.coords.latitude,
-lon: position.coords.longitude
-};
-callback();
-}, () => alert("Location access denied"));
-} else {
-alert("Geolocation is not supported by this browser.");
-}
-}
+    function loginWorker() {
+      const phone = document.getElementById('login-phone').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+      let found = false;
 
-function validatePhone() {
-const phone = document.getElementById('worker-phone').value;
-const errorDiv = document.getElementById('phone-error');
-if (!/^\d{10}$/.test(phone)) {
-errorDiv.textContent = "📛 Phone number must be exactly 10 digits";
-} else {
-errorDiv.textContent = "";
-}
-}
+      for (let cat in workersDB) {
+        const worker = workersDB[cat].find(w => w.phone === phone && w.password === password);
+        if (worker) {
+          currentPhone = phone;
+          currentCategory = cat;
+          localStorage.setItem('currentPhone', phone);
+          localStorage.setItem('currentCategory', cat);
+          updateProfileTab(worker);
+          toggleAuthTabs(true);
+          showTab('profile', document.querySelector('#profileTab'));
+          found = true;
+          break;
+        }
+      }
 
-function registerWorker() {
-const name = document.getElementById('worker-name').value.trim();
-const phone = document.getElementById('worker-phone').value.trim();
-if (!name || !/^\d{10}$/.test(phone)) return;
+      if (!found) alert("Invalid login credentials.");
+    }
 
-const existing = (workersDB[selectedCategory] || []).find(w => w.phone === phone);
-if (existing) {
-alert("⚠ You are already registered. Please login.");
-showLoginForm();
-return;
-}
+    function logout() {
+      localStorage.removeItem('currentPhone');
+      localStorage.removeItem('currentCategory');
+      currentPhone = '';
+      currentCategory = '';
+      toggleAuthTabs(false);
+      showTab('home', document.querySelector('nav button:nth-child(1)'));
+    }
 
-getLocation(() => {
-const newWorker = { name, phone, location: userLocation, available: false };
-if (!workersDB[selectedCategory]) workersDB[selectedCategory] = [];
-workersDB[selectedCategory].push(newWorker);
-localStorage.setItem('workersDB', JSON.stringify(workersDB));
+    function updateProfileTab(worker) {
+      document.getElementById('profile-info').innerHTML = `
+        <strong>Name:</strong> ${worker.name}<br>
+        <strong>Phone:</strong> ${worker.phone}<br>
+        <strong>Category:</strong> ${worker.category}<br>
+        <strong>Status:</strong> ${worker.available ? '✅ AVAILABLE' : '❌ NOT AVAILABLE'}
+      `;
+    }
 
-currentPhone = phone;
-document.getElementById('register-form').style.display = 'none';
-document.getElementById('availability').style.display = 'block';
-document.getElementById('welcome').textContent = `👋 Welcome, ${name}`;
-});
-}
+    function setAvailability(status) {
+      const workers = workersDB[currentCategory] || [];
+      const worker = workers.find(w => w.phone === currentPhone);
+      if (worker) {
+        worker.available = status;
+        localStorage.setItem('workersDB', JSON.stringify(workersDB));
+        updateProfileTab(worker);
+        alert(`Availability set to ${status ? 'AVAILABLE' : 'NOT AVAILABLE'}`);
+      }
+    }
 
-function loginWorker() {
-const phone = document.getElementById('login-phone').value.trim();
-const found = Object.keys(workersDB).some(cat => {
-const worker = workersDB[cat].find(w => w.phone === phone);
-if (worker) {
-selectedCategory = cat;
-currentPhone = phone;
-document.getElementById('login-form').style.display = 'none';
-document.getElementById('availability').style.display = 'block';
-document.getElementById('welcome').textContent = `👋 Welcome back, ${worker.name}`;
-return true;
-}
-return false;
-});
-if (!found) alert("❌ Worker not found. Please register first.");
-}
+    function findWorkers() {
+      const category = document.getElementById('search-category').value;
+      const radius = parseInt(document.getElementById('radius').value);
+      if (!category) return alert("Select a category");
 
-function setAvailability(status) {
-const workers = workersDB[selectedCategory];
-const worker = workers.find(w => w.phone === currentPhone);
-if (worker) {
-worker.available = status;
-localStorage.setItem('workersDB', JSON.stringify(workersDB));
-alert(`✅ Status set to ${status ? 'AVAILABLE' : 'NOT AVAILABLE'}`);
-}
-}
+      getLocation(userLocation => {
+        const workers = (workersDB[category] || []).filter(w => w.available);
+        const result = document.getElementById('result');
+        const R = 6371;
 
-function findWorkers() {
-const radius = parseInt(document.getElementById('radius').value);
-const workers = (workersDB[selectedCategory] || []).filter(w => w.available);
-const nearby = workers.filter(w => getDistance(userLocation, w.location) <= radius);
-const resultDiv = document.getElementById('result');
-resultDiv.innerHTML = '<h3>👥 Available Workers:</h3>' +
-(nearby.length ? nearby.map(w => `${w.name} - ${w.phone}`).join('<br>') : 'No workers found.');
-}
+        const nearby = workers.filter(w => {
+          const dLat = (w.location.lat - userLocation.lat) * Math.PI / 180;
+          const dLon = (w.location.lon - userLocation.lon) * Math.PI / 180;
+          const a = Math.sin(dLat/2)**2 +
+                    Math.cos(userLocation.lat * Math.PI / 180) *
+                    Math.cos(w.location.lat * Math.PI / 180) *
+                    Math.sin(dLon/2)**2;
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          return (R * c) <= radius;
+        });
 
-function getDistance(loc1, loc2) {
-const R = 6371;
-const dLat = (loc2.lat - loc1.lat) * Math.PI / 180;
-const dLon = (loc2.lon - loc1.lon) * Math.PI / 180;
-const a = Math.sin(dLat / 2) ** 2 +
-Math.cos(loc1.lat * Math.PI / 180) * Math.cos(loc2.lat * Math.PI / 180) *
-Math.sin(dLon / 2) ** 2;
-const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-return R * c;
-}
-</script>
+        if (nearby.length) {
+          result.innerHTML = `<h3>Available Workers:</h3>` + nearby.map(w =>
+            `<div>${w.name} - ${w.phone}</div>`
+          ).join('');
+        } else {
+          result.innerHTML = "No available workers found.";
+        }
+      });
+    }
+
+    function toggleAuthTabs(loggedIn) {
+      document.getElementById('profileTab').classList.toggle('hidden', !loggedIn);
+      document.getElementById('logoutBtn').classList.toggle('hidden', !loggedIn);
+      document.getElementById('registerTab').classList.toggle('hidden', loggedIn);
+      document.getElementById('loginTab').classList.toggle('hidden', loggedIn);
+    }
+
+    // Auto-login on page load if session exists
+    window.onload = () => {
+      if (currentPhone && currentCategory) {
+        const worker = (workersDB[currentCategory] || []).find(w => w.phone === currentPhone);
+        if (worker) {
+          updateProfileTab(worker);
+          toggleAuthTabs(true);
+        }
+      }
+    };
+  </script>
+
 </body>
 </html>
